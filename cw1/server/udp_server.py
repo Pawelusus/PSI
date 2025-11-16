@@ -2,7 +2,7 @@ import socket
 import sys
 
 HOST = '0.0.0.0'  # Standard loopback interface address (localhost)
-BUFSIZE = 1024
+BUFSIZE = 2**32
 
 
 if  len(sys.argv) < 2:
