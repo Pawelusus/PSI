@@ -18,7 +18,7 @@ void bailout(const char *message){
 }
 
 float timediff(struct timeval send, struct timeval rec){
-	float diff = (rec.tv_sec - send.tv_sec)*1000 + (rec.tv_usec - send.tv_usec)/1000;
+	float diff = (rec.tv_sec - send.tv_sec)*1000000 + (rec.tv_usec - send.tv_usec);
 	return diff;
 }
 
@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
     struct sockaddr_in server;
     char databuf[MAX_DGRAMSIZE];
     int dgram_size = 2;
+	struct hostent *hp;
+
     if (argc != 4) {
         errx(0, "Incorrect number of arguments. Correct usage: <server ip> <port> <datagram size (power of 2)>\n", argv[0]);
     }
@@ -40,8 +42,19 @@ int main(int argc, char *argv[])
     // Initialize server struct
     memset(&server, 0, sizeof(server));
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = inet_addr(argv[1]);
+
     server.sin_port = htons(atoi(argv[2]));
+	
+	//IP from name
+    server.sin_family = AF_INET;
+    hp = gethostbyname2(argv[1], AF_INET );
+
+    if (hp == (struct hostent *) 0) {
+        errx(2, "%s: unknown host\n", argv[1]);
+    }
+    printf("Address resolved\n");
+
+    memcpy((char *) &server.sin_addr, (char *) hp->h_addr, hp->h_length);
 
     // Connect to server
     connect (sock, (struct sockaddr *) &server, sizeof(server) );
@@ -55,16 +68,16 @@ int main(int argc, char *argv[])
         memset( databuf, '*', dgram_size );
 
         // Send datagram
-        // fflush( stdout );
-        gettimeofday(&send_time, NULL);
         if ((send( sock, databuf, dgram_size, 0 )) <0 ) {
             perror("Error while sending\n");
         }
-
+	gettimeofday(&send_time, NULL);
         // Server responds with number of bytes in datagram
         int response;
-        int rec = recv(sock, &response, sizeof(response), 0);
-        gettimeofday(&recieve_time, NULL);
+        int rec = recv(sock, &databuf, MAX_DGRAMSIZE, 0);
+	gettimeofday(&recieve_time, NULL);
+	databuf[rec] = '\0';
+	response =  atoi(databuf);
         if (rec < 0) {
             bailout("Error while receving a response\n");
         }
@@ -72,7 +85,7 @@ int main(int argc, char *argv[])
             bailout("Invalid server response\n");
         }
 
-        sprintf("Datagram size: %i Response delay: %lf", dgram_size, timediff(send_time, recieve_time));
+        printf("Datagram size: %i Response delay: %lf\n", dgram_size, timediff(send_time, recieve_time));
 	fflush(stdout);        
 	dgram_size = dgram_size * 2;
     }
