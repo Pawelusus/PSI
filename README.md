@@ -1,9 +1,11 @@
-### Ćwiczenie pierwsze
+# Ćwiczenie pierwsze
 
 ## Układ plików
 
 W katalogu cw1 znajduje się rozwiazanie zadania Z 1.1.
+
 W katalogu client znajduje sie konfiguracja dla kontenera klienta w dockerze oraz program w C realizujacy częsć zadania 1.
+
 W katalogu serwer znajduje sie konfiguracja dla kontenera serwera w dockerze oraz program w pythonie realizujacy częsć zadania 1.
 
 ## Wywołanie rozwiazania
